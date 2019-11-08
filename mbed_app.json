@@ -130,6 +130,27 @@
             "sd.SPI_MISO"                               : "PC_2",
             "sd.SPI_CLK"                                : "PC_7",
             "sd.SPI_CS"                                 : "PB_9"
+        },
+        "NUCLEO_H743ZI2": {
+            "target.network-default-interface-type"     : "ETHERNET",
+            "target.bootloader_img"                     : "tools/mbed-bootloader-nucleo_h743-internal-no-rot.bin",
+            "target.header_offset"                      : "0x40000",
+            "target.app_offset"                         : "0x40400",
+            "target.restrict_size"                      : "0xC0000",
+            "bootloader-size"                           : "(128*1024)",
+            "led-pinname"                               : "LED1",
+            "mbed-client.sn-coap-max-blockwise-payload-size" : 256,
+            "mbed-client-pal.pal-max-frag-len"          : 1,
+            "mbed-cloud-client.update-storage"          : "ARM_UCP_FLASHIAP",
+            "storage.storage_type"                      : "TDB_INTERNAL",
+            "storage_tdb_internal.internal_base_address": "(MBED_ROM_START + (1024*1024))",
+            "storage_tdb_internal.internal_size"        : "(2*128*1024)",
+            "update-client.application-details"         : "(MBED_ROM_START + MBED_BOOTLOADER_SIZE * 2)",
+            "update-client.bootloader-details"          : "0x8006770",
+            "update-client.firmware-header-version"     : "2",
+            "update-client.storage-address"             : "(MBED_ROM_START + ((8+2)*128*1024))",
+            "update-client.storage-locations"           : 1,
+            "update-client.storage-size"                : "(6*128*1024)"
         }
     },
     "config": {
