@@ -27,12 +27,32 @@
 #include "certificate_enrollment_user_cb.h"
 #endif
 
+#include "XNucleoIKS01A3.h"
+#include "treasure-data-rest.h"
+
 #if defined(MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS) && \
  (MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS == 1) && \
  defined(MBED_CONF_EVENTS_SHARED_DISPATCH_FROM_APPLICATION) && \
  (MBED_CONF_EVENTS_SHARED_DISPATCH_FROM_APPLICATION == 1)
 #include "nanostack-event-loop/eventOS_scheduler.h"
 #endif
+
+ // Default network interface object. Don't forget to change the WiFi SSID/password in mbed_app.json if you're using WiFi.
+NetworkInterface *net = NetworkInterface::get_default_instance();
+
+#define BUFF_SIZE   100 // used by td rest api
+TreasureData_RESTAPI* td = new TreasureData_RESTAPI(net,"aiot_workshop_db","data", MBED_CONF_APP_API_KEY);
+
+/* Instantiate the expansion board */
+static XNucleoIKS01A3 *mems_expansion_board = XNucleoIKS01A3::instance(D14, D15, D4, D5, A3, D6, A4);
+ 
+/* Retrieve the composing elements of the expansion board */
+static STTS751Sensor *temp = mems_expansion_board->t_sensor;
+static HTS221Sensor *hum_temp = mems_expansion_board->ht_sensor;
+static LPS22HHSensor *press_temp = mems_expansion_board->pt_sensor;
+// static LSM6DSOSensor *acc_gyro = mems_expansion_board->acc_gyro;
+// static LIS2MDLSensor *magnetometer = mems_expansion_board->magnetometer;
+// static LIS2DW12Sensor *accelerometer = mems_expansion_board->accelerometer;
 
 // event based LED blinker, controlled via pattern_resource
 #ifndef MCC_MINIMAL
@@ -50,6 +70,7 @@ int main(void)
 {
     return mcc_platform_run_program(main_application);
 }
+
 
 // Pointers to the resources that will be created in main_application().
 static M2MResource* button_res;
@@ -145,8 +166,48 @@ void unregister(void)
     client->close();
 }
 
+/**
+ * Update sensors and report their values.
+ * This function is called periodically.
+ */
+char td_buff     [BUFF_SIZE] = {0};
+void sensors_update() {
+    float temp_value;
+    temp->get_temperature(&temp_value);
+    float humidity_value;
+    hum_temp->get_humidity(&humidity_value);
+    float pressure_value;
+    press_temp->get_pressure(&pressure_value);
+    
+    // if (endpointInfo) {
+        printf("temp:%6.4f,humidity:%6.4f,pressure:%6.4f\r\n", temp_value, humidity_value, pressure_value);
+        // Send data to Pelion Device Management
+        // res_temperature->set_value(temp_value);
+        // res_voltage->set_value(vref);
+        // res_humidity->set_value(humidity_value);
+        // res_pressure->set_value(pressure_value);
+
+        // Send data to Treasure Data
+        int x = 0;
+        x = sprintf(td_buff,"{\"temp\":%f,\"humidity\":%f,\"pressure\":%f}", temp_value,humidity_value,pressure_value);
+        td_buff[x]=0; //null terminate string
+        td->sendData(td_buff,strlen(td_buff));
+
+    // }
+}
+
+
 void main_application(void)
 {
+
+    /* Enable all sensors */
+    hum_temp->enable();
+    press_temp->enable();
+    temp->enable();
+    // magnetometer->enable();
+    // accelerometer->enable_x();
+    // acc_gyro->enable_x();
+    // acc_gyro->enable_g();
 #if defined(__linux__) && (MBED_CONF_MBED_TRACE_ENABLE == 0)
         // make sure the line buffering is on as non-trace builds do
         // not produce enough output to fill the buffer
@@ -175,6 +236,9 @@ void main_application(void)
     // NOTE: This *must* be done before creating MbedCloudClient, as the statistic calculation
     // creates and deletes M2MSecurity and M2MDevice singleton objects, which are also used by
     // the MbedCloudClient.
+
+printf("\r\n Application Version 2\r\n");
+
 #ifdef MBED_HEAP_STATS_ENABLED
     print_m2mobject_stats();
 #endif
@@ -282,12 +346,14 @@ void main_application(void)
     eventOS_scheduler_mutex_wait();
 
     EventQueue *queue = mbed::mbed_event_queue();
+    queue.call_every(10000, sensors_update);
     queue->dispatch_forever();
 #else
-
+    printf("\r\nThis is so dumb...\r\n");
     // Check if client is registering or registered, if true sleep and repeat.
     while (mbedClient.is_register_called()) {
-        mcc_platform_do_wait(100);
+        sensors_update();
+        mcc_platform_do_wait(10000);
     }
 
     // Client unregistered, disconnect and exit program.

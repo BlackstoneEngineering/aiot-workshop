@@ -1,6 +1,7 @@
 {
     "macros": [
-        "ARM_UC_USE_PAL_BLOCKDEVICE=1"
+        "ARM_UC_USE_PAL_BLOCKDEVICE=1",
+        "MBEDTLS_USER_CONFIG_FILE=\"mbedTLSConfig.h\""
     ],
     "target_overrides": {
         "*": {
@@ -171,6 +172,10 @@
             "help"      : "Helper macro to enable calculation of rom regions. target.header_offset and target.app_offset still needs to be calculated manually, though.",
             "value"     : "(32*1024)",
             "macro_name": "MBED_BOOTLOADER_SIZE"
+        },
+        "api-key":{
+            "help":  "REST API Key for Treasure Data",
+            "value": "\"CHANGE_ME\""
         }
     }
 }
