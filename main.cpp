@@ -173,8 +173,9 @@ void unregister(void)
  * This function is called periodically.
  */
 char td_buff     [BUFF_SIZE] = {0};
+float temp_value;
 void sensors_update() {
-    float temp_value;
+Tensor* temp_value_tensor = new WrappedRamTensor<float>({0,10}, (float*) &temp_value);    
     temp->get_temperature(&temp_value);
     float humidity_value;
     hum_temp->get_humidity(&humidity_value);
@@ -196,12 +197,13 @@ void sensors_update() {
         td->sendData(td_buff,strlen(td_buff));
 
         // run inference
-        Tensor* temp_value_tensor = new WrappedRamTensor<float>({10}, (float*) &temp_value);
         get_workshop_model_ctx(ctx, temp_value_tensor);
+        printf("...Running Eval...");
         ctx.eval();
+        printf("finished....");
         S_TENSOR prediction = ctx.get({"dense_3/BiasAdd:0"});
-        int result = *(prediction->read<int>(0,0));
-        printf("\r\nResult is %d\r\n",result);
+        int result = *(prediction->read<float>(0,0));
+        printf("\r\nResult is %f\r\n",result);
 
     // }
 }
