@@ -27,8 +27,9 @@
 #include "certificate_enrollment_user_cb.h"
 #endif
 
-#include "XNucleoIKS01A3.h"
-#include "treasure-data-rest.h"
+#include "XNucleoIKS01A3.h"     // ST Sensor Shield
+#include "treasure-data-rest.h" // Pelion Data Management
+#include "models/models/workshop_model.hpp" // uTensor
 
 #if defined(MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS) && \
  (MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS == 1) && \
