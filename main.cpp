@@ -30,6 +30,7 @@
 #include "XNucleoIKS01A3.h"     // ST Sensor Shield
 #include "treasure-data-rest.h" // Pelion Data Management
 #include "models/models/workshop_model.hpp" // uTensor
+Context ctx;
 
 #if defined(MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS) && \
  (MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS == 1) && \
@@ -193,6 +194,14 @@ void sensors_update() {
         x = sprintf(td_buff,"{\"temp\":%f,\"humidity\":%f,\"pressure\":%f}", temp_value,humidity_value,pressure_value);
         td_buff[x]=0; //null terminate string
         td->sendData(td_buff,strlen(td_buff));
+
+        // run inference
+        Tensor* temp_value_tensor = new WrappedRamTensor<float>({10}, (float*) &temp_value);
+        get_workshop_model_ctx(ctx, temp_value_tensor);
+        ctx.eval();
+        S_TENSOR prediction = ctx.get({"dense_3/BiasAdd:0"});
+        int result = *(prediction->read<int>(0,0));
+        printf("\r\nResult is %d\r\n",result);
 
     // }
 }
