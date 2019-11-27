@@ -200,13 +200,13 @@ void sensors_update() {
 
         // run inference
         Context ctx;
-        Tensor* temp_value_tensor = new WrappedRamTensor<float>({0,10}, (float*) temp_value);    
+        Tensor* temp_value_tensor = new WrappedRamTensor<float>({1,10}, (float*) &temp_value);    
         get_workshop_model_ctx(ctx, temp_value_tensor);
         printf("...Running Eval...");
         ctx.eval();
         printf("finished....");
         S_TENSOR prediction = ctx.get({"dense_3/BiasAdd:0"});
-        int result = *(prediction->read<float>(0,0));
+        float result = *(prediction->read<float>(0,0));
         printf("\r\nResult is %f\r\n",result);
 
     // }
