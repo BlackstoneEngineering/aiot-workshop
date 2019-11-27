@@ -185,8 +185,8 @@ void inference(void) {
     ctx.eval();
     printf("finished....");
     S_TENSOR prediction = ctx.get({"dense_3/BiasAdd:0"});
-    int result = *(prediction->read<float>(0,0));
-    printf("\r\nResult is %f\r\n",result);
+    float result = *(prediction->read<float>(0,0));
+    printf("\r\nResult is %f\r\n", result);
 }
 
 /**
