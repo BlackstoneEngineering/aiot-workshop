@@ -17,6 +17,7 @@
 // ----------------------------------------------------------------------------
 
 #include "simplem2mclient.h"
+#include "SensorQueue.hpp"
 #ifdef TARGET_LIKE_MBED
 #include "mbed.h"
 #endif
@@ -30,7 +31,6 @@
 #include "XNucleoIKS01A3.h"     // ST Sensor Shield
 #include "treasure-data-rest.h" // Pelion Data Management
 #include "models/models/workshop_model.hpp" // uTensor
-Context ctx;
 
 #if defined(MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS) && \
  (MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS == 1) && \
@@ -168,14 +168,37 @@ void unregister(void)
     client->close();
 }
 
+// SensorQueue
+// Each window of input consists of 10 samples
+// Overlaps 5 samples at a time
+// Caching max of 2 overlaping segments at a time
+SensorQueue<float> temp_input_pool(10, 5, 2);
+
+void inference(void) {
+    Context ctx;
+    static float temp_values[10];
+    temp_input_pool.copyTo(temp_values);
+    Tensor* temp_value_tensor = new WrappedRamTensor<float>({0,10}, (float*) &temp_values);
+    // run inference
+    get_workshop_model_ctx(ctx, temp_value_tensor);
+    printf("...Running Eval...");
+    ctx.eval();
+    printf("finished....");
+    S_TENSOR prediction = ctx.get({"dense_3/BiasAdd:0"});
+    int result = *(prediction->read<float>(0,0));
+    printf("\r\nResult is %f\r\n",result);
+}
+
 /**
  * Update sensors and report their values.
  * This function is called periodically.
  */
+
+
 char td_buff     [BUFF_SIZE] = {0};
 float temp_value;
+
 void sensors_update() {
-Tensor* temp_value_tensor = new WrappedRamTensor<float>({0,10}, (float*) &temp_value);    
     temp->get_temperature(&temp_value);
     float humidity_value;
     hum_temp->get_humidity(&humidity_value);
@@ -196,14 +219,7 @@ Tensor* temp_value_tensor = new WrappedRamTensor<float>({0,10}, (float*) &temp_v
         td_buff[x]=0; //null terminate string
         td->sendData(td_buff,strlen(td_buff));
 
-        // run inference
-        get_workshop_model_ctx(ctx, temp_value_tensor);
-        printf("...Running Eval...");
-        ctx.eval();
-        printf("finished....");
-        S_TENSOR prediction = ctx.get({"dense_3/BiasAdd:0"});
-        int result = *(prediction->read<float>(0,0));
-        printf("\r\nResult is %f\r\n",result);
+        temp_input_pool.append(temp_value);
 
     // }
 }
@@ -216,6 +232,7 @@ void main_application(void)
     hum_temp->enable();
     press_temp->enable();
     temp->enable();
+    temp_input_pool.setCallBack(inference);
     // magnetometer->enable();
     // accelerometer->enable_x();
     // acc_gyro->enable_x();
