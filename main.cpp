@@ -178,7 +178,7 @@ void inference(void) {
     Context ctx;
     static float temp_values[10];
     temp_input_pool.copyTo(temp_values);
-    Tensor* temp_value_tensor = new WrappedRamTensor<float>({0,10}, (float*) &temp_values);
+    Tensor* temp_value_tensor = new WrappedRamTensor<float>({1,10}, (float*) &temp_values);
     // run inference
     get_workshop_model_ctx(ctx, temp_value_tensor);
     printf("...Running Eval...");
