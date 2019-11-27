@@ -30,7 +30,6 @@
 #include "XNucleoIKS01A3.h"     // ST Sensor Shield
 #include "treasure-data-rest.h" // Pelion Data Management
 #include "models/models/workshop_model.hpp" // uTensor
-Context ctx;
 
 #if defined(MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS) && \
  (MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS == 1) && \
@@ -173,17 +172,20 @@ void unregister(void)
  * This function is called periodically.
  */
 char td_buff     [BUFF_SIZE] = {0};
-float temp_value;
+float temp_value[10];
+volatile int temp_index =0;
 void sensors_update() {
-Tensor* temp_value_tensor = new WrappedRamTensor<float>({0,10}, (float*) &temp_value);    
-    temp->get_temperature(&temp_value);
+
+    
+    temp_index = (temp_index +1)%10; //wrap index
+    temp->get_temperature(&temp_value[temp_index]);
     float humidity_value;
     hum_temp->get_humidity(&humidity_value);
     float pressure_value;
     press_temp->get_pressure(&pressure_value);
     
     // if (endpointInfo) {
-        printf("temp:%6.4f,humidity:%6.4f,pressure:%6.4f\r\n", temp_value, humidity_value, pressure_value);
+        printf("temp[%d]:%6.4f,humidity:%6.4f,pressure:%6.4f\r\n",temp_index, temp_value[temp_index], humidity_value, pressure_value);
         // Send data to Pelion Device Management
         // res_temperature->set_value(temp_value);
         // res_voltage->set_value(vref);
@@ -192,11 +194,13 @@ Tensor* temp_value_tensor = new WrappedRamTensor<float>({0,10}, (float*) &temp_v
 
         // Send data to Treasure Data
         int x = 0;
-        x = sprintf(td_buff,"{\"temp\":%f,\"humidity\":%f,\"pressure\":%f}", temp_value,humidity_value,pressure_value);
+        x = sprintf(td_buff,"{\"temp\":%f,\"humidity\":%f,\"pressure\":%f}", temp_value[temp_index],humidity_value,pressure_value);
         td_buff[x]=0; //null terminate string
         td->sendData(td_buff,strlen(td_buff));
 
         // run inference
+        Context ctx;
+        Tensor* temp_value_tensor = new WrappedRamTensor<float>({0,10}, (float*) temp_value);    
         get_workshop_model_ctx(ctx, temp_value_tensor);
         printf("...Running Eval...");
         ctx.eval();
