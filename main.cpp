@@ -29,7 +29,6 @@
 
 #include "XNucleoIKS01A3.h"     // ST Sensor Shield
 #include "treasure-data-rest.h" // Pelion Data Management
-#include "models/models/workshop_model.hpp" // uTensor
 
 #if defined(MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS) && \
  (MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS == 1) && \
@@ -75,9 +74,9 @@ int main(void)
 
 // Pointers to the resources that will be created in main_application().
 static M2MResource* button_res;
-static M2MResource* pattern_res;
-static M2MResource* blink_res;
-static M2MResource* unregister_res;
+static M2MResource* temperature_res;
+static M2MResource* humidity_res;
+static M2MResource* pressure_res;
 
 void unregister_received(void);
 void unregister(void);
@@ -85,27 +84,6 @@ void unregister(void);
 // Pointer to mbedClient, used for calling close function.
 static SimpleM2MClient *client;
 
-void pattern_updated(const char *)
-{
-    printf("PUT received, new value: %s\n", pattern_res->get_value_string().c_str());
-}
-
-void blink_callback(void *)
-{
-    String pattern_string = pattern_res->get_value_string();
-    const char *pattern = pattern_string.c_str();
-    printf("LED pattern = %s\n", pattern);
-
-    // The pattern is something like 500:200:500, so parse that.
-    // LED blinking is done while parsing.
-#ifndef MCC_MINIMAL
-    const bool restart_pattern = false;
-    if (blinky.start((char*)pattern_res->value(), pattern_res->value_length(), restart_pattern) == false) {
-        printf("out of memory error\n");
-    }
-#endif
-    blink_res->send_delayed_post_response();
-}
 
 void notification_status_callback(const M2MBase& object,
                             const M2MBase::MessageDeliveryStatus status,
@@ -154,11 +132,6 @@ void sent_callback(const M2MBase& base,
     }
 }
 
-void unregister_triggered(void)
-{
-    printf("Unregister resource triggered\n");
-    unregister_res->send_delayed_post_response();
-}
 
 // This function is called when a POST request is received for resource 5000/0/1.
 void unregister(void)
@@ -172,42 +145,26 @@ void unregister(void)
  * This function is called periodically.
  */
 char td_buff     [BUFF_SIZE] = {0};
-float temp_value[10];
-volatile int temp_index =0;
 void sensors_update() {
-
-    
-    temp_index = (temp_index +1)%10; //wrap index
-    temp->get_temperature(&temp_value[temp_index]);
+    float temp_value;
+    temp->get_temperature(&temp_value);
     float humidity_value;
     hum_temp->get_humidity(&humidity_value);
     float pressure_value;
     press_temp->get_pressure(&pressure_value);
     
     // if (endpointInfo) {
-        printf("temp[%d]:%6.4f,humidity:%6.4f,pressure:%6.4f\r\n",temp_index, temp_value[temp_index], humidity_value, pressure_value);
+        printf("temp:%6.4f,humidity:%6.4f,pressure:%6.4f\r\n",temp_value, humidity_value, pressure_value);
         // Send data to Pelion Device Management
-        // res_temperature->set_value(temp_value);
-        // res_voltage->set_value(vref);
-        // res_humidity->set_value(humidity_value);
-        // res_pressure->set_value(pressure_value);
+        // temperature_res->set_value(temp_value);
+        // humidity_res->set_value(humidity_value);
+        // pressure_res->set_value(pressure_value);
 
         // Send data to Treasure Data
         int x = 0;
-        x = sprintf(td_buff,"{\"temp\":%f,\"humidity\":%f,\"pressure\":%f}", temp_value[temp_index],humidity_value,pressure_value);
+        x = sprintf(td_buff,"{\"temp\":%f,\"humidity\":%f,\"pressure\":%f}", temp_value,humidity_value,pressure_value);
         td_buff[x]=0; //null terminate string
         td->sendData(td_buff,strlen(td_buff));
-
-        // run inference
-        Context ctx;
-        Tensor* temp_value_tensor = new WrappedRamTensor<float>({1,10}, (float*) &temp_value);    
-        get_workshop_model_ctx(ctx, temp_value_tensor);
-        printf("...Running Eval...");
-        ctx.eval();
-        printf("finished....");
-        S_TENSOR prediction = ctx.get({"dense_3/BiasAdd:0"});
-        float result = *(prediction->read<float>(0,0));
-        printf("\r\nResult is %f\r\n",result);
 
     // }
 }
@@ -224,40 +181,6 @@ void main_application(void)
     // accelerometer->enable_x();
     // acc_gyro->enable_x();
     // acc_gyro->enable_g();
-#if defined(__linux__) && (MBED_CONF_MBED_TRACE_ENABLE == 0)
-        // make sure the line buffering is on as non-trace builds do
-        // not produce enough output to fill the buffer
-        setlinebuf(stdout);
-#endif
-
-    // Initialize trace-library first
-    if (application_init_mbed_trace() != 0) {
-        printf("Failed initializing mbed trace\n" );
-        return;
-    }
-
-    // Initialize storage
-    if (mcc_platform_storage_init() != 0) {
-        printf("Failed to initialize storage\n" );
-        return;
-    }
-
-    // Initialize platform-specific components
-    if(mcc_platform_init() != 0) {
-        printf("ERROR - platform_init() failed!\n");
-        return;
-    }
-
-    // Print some statistics of the object sizes and their heap memory consumption.
-    // NOTE: This *must* be done before creating MbedCloudClient, as the statistic calculation
-    // creates and deletes M2MSecurity and M2MDevice singleton objects, which are also used by
-    // the MbedCloudClient.
-
-printf("\r\n Application Version 2\r\n");
-
-#ifdef MBED_HEAP_STATS_ENABLED
-    print_m2mobject_stats();
-#endif
 
     // SimpleClient is used for registering and unregistering resources to a server.
     SimpleM2MClient mbedClient;
@@ -298,34 +221,12 @@ printf("\r\n Application Version 2\r\n");
         return;
     }
 
-#ifdef MBED_HEAP_STATS_ENABLED
-    printf("Client initialized\r\n");
-    print_heap_stats();
-#endif
-#ifdef MBED_STACK_STATS_ENABLED
-    print_stack_statistics();
-#endif
-
 #ifndef MCC_MEMORY
     // Create resource for button count. Path of this resource will be: 3200/0/5501.
     button_res = mbedClient.add_cloud_resource(3200, 0, 5501, "button_resource", M2MResourceInstance::INTEGER,
                               M2MBase::GET_ALLOWED, 0, true, NULL, (void*)notification_status_callback);
     button_res->set_value(0);
 
-    // Create resource for led blinking pattern. Path of this resource will be: 3201/0/5853.
-    pattern_res = mbedClient.add_cloud_resource(3201, 0, 5853, "pattern_resource", M2MResourceInstance::STRING,
-                               M2MBase::GET_PUT_ALLOWED, "500:500:500:500", true, (void*)pattern_updated, (void*)notification_status_callback);
-
-    // Create resource for starting the led blinking. Path of this resource will be: 3201/0/5850.
-    blink_res = mbedClient.add_cloud_resource(3201, 0, 5850, "blink_resource", M2MResourceInstance::STRING,
-                             M2MBase::POST_ALLOWED, "", false, (void*)blink_callback, (void*)notification_status_callback);
-    // Use delayed response
-    blink_res->set_delayed_response(true);
-
-    // Create resource for unregistering the device. Path of this resource will be: 5000/0/1.
-    unregister_res = mbedClient.add_cloud_resource(5000, 0, 1, "unregister", M2MResourceInstance::STRING,
-                 M2MBase::POST_ALLOWED, NULL, false, (void*)unregister_triggered, (void*)sent_callback);
-    unregister_res->set_delayed_response(true);
 
     // Create resource for running factory reset for the device. Path of this resource will be: 3/0/6.
     M2MInterfaceFactory::create_device()->create_resource(M2MDevice::FactoryReset);
