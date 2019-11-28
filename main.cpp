@@ -132,14 +132,6 @@ void sent_callback(const M2MBase& base,
     }
 }
 
-
-// This function is called when a POST request is received for resource 5000/0/1.
-void unregister(void)
-{
-    printf("Unregister resource executed\n");
-    client->close();
-}
-
 /**
  * Update sensors and report their values.
  * This function is called periodically.
@@ -153,26 +145,23 @@ void sensors_update() {
     float pressure_value;
     press_temp->get_pressure(&pressure_value);
     
-    // if (endpointInfo) {
-        printf("temp:%6.4f,humidity:%6.4f,pressure:%6.4f\r\n",temp_value, humidity_value, pressure_value);
-        // Send data to Pelion Device Management
-        temperature_res->set_value(temp_value);
-        humidity_res->set_value(humidity_value);
-        pressure_res->set_value(pressure_value);
+    printf("temp:%6.4f,humidity:%6.4f,pressure:%6.4f\r\n",temp_value, humidity_value, pressure_value);
+    // Send data to Pelion Device Management
+    temperature_res->set_value(temp_value);
+    humidity_res->set_value(humidity_value);
+    pressure_res->set_value(pressure_value);
 
-        // Send data to Treasure Data
-        int x = 0;
-        x = sprintf(td_buff,"{\"temp\":%f,\"humidity\":%f,\"pressure\":%f}", temp_value,humidity_value,pressure_value);
-        td_buff[x]=0; //null terminate string
-        td->sendData(td_buff,strlen(td_buff));
+    // Send data to Treasure Data
+    int x = 0;
+    x = sprintf(td_buff,"{\"temp\":%f,\"humidity\":%f,\"pressure\":%f}", temp_value,humidity_value,pressure_value);
+    td_buff[x]=0; //null terminate string
+    td->sendData(td_buff,strlen(td_buff));
 
-    // }
 }
 
 
 void main_application(void)
 {
-
     /* Enable all sensors */
     hum_temp->enable();
     press_temp->enable();
@@ -221,7 +210,6 @@ void main_application(void)
         return;
     }
 
-#ifndef MCC_MEMORY
     // Create resource for button count. Path of this resource will be: 3200/0/5501.
     button_res = mbedClient.add_cloud_resource(3200, 0, 5501, "button_resource", M2MResourceInstance::INTEGER,
                               M2MBase::GET_ALLOWED, 0, true, NULL, (void*)notification_status_callback);
@@ -242,7 +230,6 @@ void main_application(void)
     // Create resource for running factory reset for the device. Path of this resource will be: 3/0/6.
     M2MInterfaceFactory::create_device()->create_resource(M2MDevice::FactoryReset);
 
-#endif
 
 // For high-latency networks with limited total bandwidth combined with large number
 // of endpoints, it helps to stabilize the network when Device Management Client has
@@ -265,18 +252,6 @@ void main_application(void)
     mbedClient.get_cloud_client().on_certificate_renewal(certificate_renewal_cb);
 #endif // MBED_CONF_MBED_CLOUD_CLIENT_DISABLE_CERTIFICATE_ENROLLMENT
 
-#if defined(MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS) && \
- (MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS == 1) && \
- defined(MBED_CONF_EVENTS_SHARED_DISPATCH_FROM_APPLICATION) && \
- (MBED_CONF_EVENTS_SHARED_DISPATCH_FROM_APPLICATION == 1)
-    printf("Starting mbed eventloop...\n");
-
-    eventOS_scheduler_mutex_wait();
-
-    EventQueue *queue = mbed::mbed_event_queue();
-    queue.call_every(10000, sensors_update);
-    queue->dispatch_forever();
-#else
     // Check if client is registering or registered, if true sleep and repeat.
     while (mbedClient.is_register_called()) {
         sensors_update();
@@ -285,5 +260,5 @@ void main_application(void)
 
     // Client unregistered, disconnect and exit program.
     mcc_platform_interface_close();
-#endif
+
 }
