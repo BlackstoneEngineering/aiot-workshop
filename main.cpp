@@ -216,41 +216,25 @@ void main_application(void)
     button_res->set_value(0);
 
     temperature_res = mbedClient.add_cloud_resource(3303, 0, 5501, "temperature_resource", M2MResourceInstance::FLOAT,
-                              M2MBase::GET_ALLOWED, 0, true, NULL, (void*)notification_status_callback);
+                              M2MBase::GET_ALLOWED, 0, true, NULL, NULL);
     temperature_res->set_value_float(0);
     
     humidity_res = mbedClient.add_cloud_resource(3304, 0, 5501, "humidity_resource", M2MResourceInstance::FLOAT,
-                              M2MBase::GET_ALLOWED, 0, true, NULL, (void*)notification_status_callback);
+                              M2MBase::GET_ALLOWED, 0, true, NULL, NULL);
     humidity_res->set_value_float(0);
     
     pressure_res = mbedClient.add_cloud_resource(3323, 0, 5501, "pressure_resource", M2MResourceInstance::FLOAT,
-                              M2MBase::GET_ALLOWED, 0, true, NULL, (void*)notification_status_callback);
+                              M2MBase::GET_ALLOWED, 0, true, NULL, NULL);
     pressure_res->set_value_float(0);
 
     // Create resource for running factory reset for the device. Path of this resource will be: 3/0/6.
     M2MInterfaceFactory::create_device()->create_resource(M2MDevice::FactoryReset);
 
-
-// For high-latency networks with limited total bandwidth combined with large number
-// of endpoints, it helps to stabilize the network when Device Management Client has
-// delayed registration to Device Management after the network formation.
-// This is applicable in large Wi-SUN networks.
-#if defined(STARTUP_MAX_RANDOM_DELAY) && (STARTUP_MAX_RANDOM_DELAY > 0)
-    wait_application_startup_delay();
-#endif
-
     mbedClient.register_and_connect();
 
-#ifndef MCC_MINIMAL
+    printf("Need 2");
     blinky.init(mbedClient, button_res);
     blinky.request_next_loop_event();
-#endif
-
-
-#ifndef MBED_CONF_MBED_CLOUD_CLIENT_DISABLE_CERTIFICATE_ENROLLMENT
-    // Add certificate renewal callback
-    mbedClient.get_cloud_client().on_certificate_renewal(certificate_renewal_cb);
-#endif // MBED_CONF_MBED_CLOUD_CLIENT_DISABLE_CERTIFICATE_ENROLLMENT
 
     // Check if client is registering or registered, if true sleep and repeat.
     while (mbedClient.is_register_called()) {
