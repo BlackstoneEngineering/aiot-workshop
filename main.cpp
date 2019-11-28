@@ -147,9 +147,9 @@ void sensors_update() {
     
     printf("temp:%6.4f,humidity:%6.4f,pressure:%6.4f\r\n",temp_value, humidity_value, pressure_value);
     // Send data to Pelion Device Management
-    temperature_res->set_value(temp_value);
-    humidity_res->set_value(humidity_value);
-    pressure_res->set_value(pressure_value);
+    temperature_res->set_value_float(temp_value);
+    humidity_res->set_value_float(humidity_value);
+    pressure_res->set_value_float(pressure_value);
 
     // Send data to Treasure Data
     int x = 0;
@@ -217,15 +217,15 @@ void main_application(void)
 
     temperature_res = mbedClient.add_cloud_resource(3303, 0, 5501, "temperature_resource", M2MResourceInstance::FLOAT,
                               M2MBase::GET_ALLOWED, 0, true, NULL, (void*)notification_status_callback);
-    temperature_res->set_value(0);
+    temperature_res->set_value_float(0);
     
     humidity_res = mbedClient.add_cloud_resource(3304, 0, 5501, "humidity_resource", M2MResourceInstance::FLOAT,
                               M2MBase::GET_ALLOWED, 0, true, NULL, (void*)notification_status_callback);
-    humidity_res->set_value(0);
+    humidity_res->set_value_float(0);
     
     pressure_res = mbedClient.add_cloud_resource(3323, 0, 5501, "pressure_resource", M2MResourceInstance::FLOAT,
                               M2MBase::GET_ALLOWED, 0, true, NULL, (void*)notification_status_callback);
-    pressure_res->set_value(0);
+    pressure_res->set_value_float(0);
 
     // Create resource for running factory reset for the device. Path of this resource will be: 3/0/6.
     M2MInterfaceFactory::create_device()->create_resource(M2MDevice::FactoryReset);
