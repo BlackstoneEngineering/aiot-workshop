@@ -138,6 +138,8 @@ void sent_callback(const M2MBase& base,
  */
 char td_buff     [BUFF_SIZE] = {0};
 void sensors_update() {
+
+    // Get sensor values
     float temp_value;
     temp->get_temperature(&temp_value);
     float humidity_value;
@@ -145,7 +147,9 @@ void sensors_update() {
     float pressure_value;
     press_temp->get_pressure(&pressure_value);
     
+    // Print sensors to Serial Terminal
     printf("temp:%6.4f,humidity:%6.4f,pressure:%6.4f\r\n",temp_value, humidity_value, pressure_value);
+    
     // Send data to Pelion Device Management
     temperature_res->set_value_float(temp_value);
     humidity_res->set_value_float(humidity_value);
@@ -162,7 +166,7 @@ void sensors_update() {
 
 void main_application(void)
 {
-    /* Enable all sensors */
+    /* Enable sensors on the shield */
     hum_temp->enable();
     press_temp->enable();
     temp->enable();
@@ -176,18 +180,6 @@ void main_application(void)
 
     // Save pointer to mbedClient so that other functions can access it.
     client = &mbedClient;
-
-    /*
-     * Pre-initialize network stack and client library.
-     *
-     * Specifically for nanostack mesh networks on Mbed OS platform it is important to initialize
-     * the components in correct order to avoid out-of-memory issues in Device Management Client initialization.
-     * The order for these use cases should be:
-     * 1. Initialize network stack using `nsapi_create_stack()` (Mbed OS only). // Implemented in `mcc_platform_interface_init()`.
-     * 2. Initialize Device Management Client using `init()`.                   // Implemented in `mbedClient.init()`.
-     * 3. Connect to network interface using 'connect()`.                       // Implemented in `mcc_platform_interface_connect()`.
-     * 4. Connect Device Management Client to service using `setup()`.          // Implemented in `mbedClient.register_and_connect)`.
-     */
     (void) mcc_platform_interface_init();
     mbedClient.init();
 
@@ -229,10 +221,7 @@ void main_application(void)
 
     // Create resource for running factory reset for the device. Path of this resource will be: 3/0/6.
     M2MInterfaceFactory::create_device()->create_resource(M2MDevice::FactoryReset);
-
     mbedClient.register_and_connect();
-
-    printf("Need 2");
     blinky.init(mbedClient, button_res);
     blinky.request_next_loop_event();
 
