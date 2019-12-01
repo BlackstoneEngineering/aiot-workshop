@@ -57,7 +57,7 @@ Now that you have setup all the configuration parameters you can compile and loa
 
 
 #### Check Serial Output
-Mbed Studio has a handy Serial Terminal built right into it, you can simply go to `View->Serial Monitor` and you should be ablet o see the data coming out of your board. Click the blue button on the board to see direct output, or try clicking the black button to reset the board and watch it boot up!
+Mbed Studio has a handy Serial Terminal built right into it, you can simply go to `View->Serial Monitor` and you should be ablet o see the data coming out of your board. Click the blue button on the board to see direct output, or try clicking the black button to reset the board and watch it boot up! Make sure to change your baud rate to `115200` for this example!
 
 Success looks like this: 
 
@@ -95,5 +95,28 @@ After 3-5 minutes you should be able to see your data in [Treasure Data](https:/
 ![](./img/td_db.png)
 
 ### Compile ML Models based on Data
+
+After you  have some data in your database (reccomended 1000+ samples) we can generate new ML models from the data. To do this we're going to use the Workflow feature of Arm Treasure Data. If you'd like details on how we're doing this we can deep dive on it with you offline. For now just know that we're using Tensorflow go process the data and then running the models through a quantization engine to reduce the models to .cpp and .hpp files that we can use on an embedded device. 
+
+#### Run Workflow in Treasure Data
+
+It will take some time to run the workflow (~10min per table in the database, so it may be best to run the workflow overnight.) Once the workflow has been run you can find the generated files here : [http://aiotworkshop.s3-website-us-west-1.amazonaws.com/index.html](http://aiotworkshop.s3-website-us-west-1.amazonaws.com/index.html).
+
+#### Download your models
+
+From the [link](http://aiotworkshop.s3-website-us-west-1.amazonaws.com/index.html) you will need to download the `table_name.cpp / .hpp` and `table_name_weights.hpp`. 
+
+If you're interested you can also download the .h5 and .pb files to explore the models using a model explorer. 
+
+*NOTE* if you did not get your table working, or do not have enough time, you can use the `data` model files as it'll work just fine fo rthe next steps. 
+
+#### Explore the model
+
+Using [this model explorer](https://lutzroeder.github.io/netron/) you can view the phases in your model. Pay special attention to the output node, as we'll be using that name in out embedded code. 
+
+
+### Run ML on Device
+
+Next up we're going to use those model files you downloaded on the device.
 
 
