@@ -17,6 +17,8 @@ In the first workshop session we will connect our device running Mbed OS to the 
 
 
 ### Import and configure device code
+
+#### Pelion Device Management
 In Mbed Studio import [https://github.com/BlackstoneEngineering/aiot-workshop](https://github.com/BlackstoneEngineering/aiot-workshop) into your workspace. This process will take a couple of minutes to pull down all the libraries to your local workspace. 
 
 ![](./img/ImportProgramMbedStudio.gif)
@@ -32,7 +34,11 @@ Next you will need to add Pelion Device Management certificates for both connect
 
 ![](./img/add_certificates.gif)
 
-Next we are going to add a Pelion Data Management (Treasure Data) API key and a custom table name to `mbed_app.json`. This will allow the device to send data to treasure data and store it into the specified table. (Note, the database is hard coded in `main.cpp` for reasons that will become apparent later). Everyone needs a unique table name, so I reccomend using your last name, or your first_last name as the table name.
+#### Pelion Data Management (Treasure Data)
+
+Next we are going to add a Pelion Data Management (Treasure Data) [API key](https://console.treasuredata.com/app/mp/ak/) and a custom table name to `mbed_app.json`. This will allow the device to send data to treasure data and store it into the specified table. (Note, the database is hard coded in `main.cpp` for reasons that will become apparent later). Everyone needs a unique table name, so I reccomend using your last name, or your first_last name as the table name.
+
+Grab TD API key from here : [https://console.treasuredata.com/app/mp/ak/](https://console.treasuredata.com/app/mp/ak/) 
 
 ```mbed_app.json
 "api-key":{
@@ -45,3 +51,42 @@ Next we are going to add a Pelion Data Management (Treasure Data) API key and a 
         }
 ```
 
+#### Compile the code
+
+Now that you have setup all the configuration parameters you can compile and load the code onto your board. Click on the `Build` and then the `run` icons in Mbed Studio. This may take a minute or two to compile, when the board is being programmed you will see the LED flash, this is a good sign, wait for it to stop flashing and then move on to check the serial output!
+
+
+#### Check Serial Output
+Mbed Studio has a handy Serial Terminal built right into it, you can simply go to `View->Serial Monitor` and you should be ablet o see the data coming out of your board. Click the blue button on the board to see direct output, or try clicking the black button to reset the board and watch it boot up!
+
+Success looks like this: 
+
+```
+Mbed Bootloader
+[DBG ] Active firmware up-to-date
+booting...
+
+ Application Version 2
+Start Device Management Client
+Starting developer flow
+Connecting with interface: Ethernet
+NSAPI_STATUS_CONNECTING
+NSAPI_STATUS_GLOBAL_UP
+IP: 192.168.1.250
+Network initialized, registering...
+
+Client registered
+Endpoint Name: 016e56566fb0000000000001001d6d5e
+Device Id: 016e56566fb0000000000001001d6d5e
+temp:28.6875,humidity:45.2000,pressure:993.3853
+
+```
+
+
+#### View Data in Pelion Device Management
+Once your board has connected you can view it in the [Pelion Dashboard](https://portal.mbedcloud.com/devices/list). Try clicking through the resources on your device to see the temperature, humidity, pressure, and button clicks in real time from the board!
+
+#### Check Treasure Data Database
+
+
+### Compile ML Models based on Data
