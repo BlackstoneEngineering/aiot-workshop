@@ -86,7 +86,14 @@ temp:28.6875,humidity:45.2000,pressure:993.3853
 #### View Data in Pelion Device Management
 Once your board has connected you can view it in the [Pelion Dashboard](https://portal.mbedcloud.com/devices/list). Try clicking through the resources on your device to see the temperature, humidity, pressure, and button clicks in real time from the board!
 
+TODO: gif of this
+
 #### Check Treasure Data Database
 
+After 3-5 minutes you should be able to see your data in [Treasure Data](https://console.treasuredata.com/app/databases/2440539) under the 'Databases' tab. Note that for this workshop everyone will be using the `aiot_workshop_db` database and sending their data to seperate tables. 
+
+![](./img/td_db.png)
 
 ### Compile ML Models based on Data
+
+
