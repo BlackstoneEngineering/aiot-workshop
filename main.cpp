@@ -41,7 +41,7 @@
 NetworkInterface *net = NetworkInterface::get_default_instance();
 
 #define BUFF_SIZE   100 // used by td rest api
-TreasureData_RESTAPI* td = new TreasureData_RESTAPI(net,"aiot_workshop_db","data", MBED_CONF_APP_API_KEY);
+TreasureData_RESTAPI* td = new TreasureData_RESTAPI(net,"aiot_workshop_db",MBED_CONF_APP_TABLE_NAME, MBED_CONF_APP_API_KEY);
 
 /* Instantiate the expansion board */
 static XNucleoIKS01A3 *mems_expansion_board = XNucleoIKS01A3::instance(D14, D15, D4, D5, A3, D6, A4);
