@@ -125,7 +125,7 @@ void sent_callback(const M2MBase& base,
 {
     switch(status) {
         case M2MBase::MESSAGE_STATUS_DELIVERED:
-            unregister();
+            // unregister();
             break;
         default:
             break;
