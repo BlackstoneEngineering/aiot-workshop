@@ -1,7 +1,7 @@
 # Arm AIoT Developer Summit : Buidling End to End Machine Learning Workshop
 This workshop covers how to do full lifecycle management of an IoT Edge device that uses machine learning and the Arm Pelion ecosystem. We will cover how to send data from your device running Mbed OS to the Arm Pelion Data Management service, how to then create a model in the cloud, and then deploy that model back to the device. 
 
-TODO: Insert architecture diagram
+![](./img/e2eML.png)
 
 At the end of this workshop you will have a Cortex M IoT device running machine learning at the edge and using that model to determine what data to send to the cloud. 
 
