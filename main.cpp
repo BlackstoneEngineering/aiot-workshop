@@ -27,9 +27,10 @@
 #include "certificate_enrollment_user_cb.h"
 #endif
 
+#include "models/models/data.hpp" // uTensor
 #include "XNucleoIKS01A3.h"     // ST Sensor Shield
 #include "treasure-data-rest.h" // Pelion Data Management
-#include "models/models/data_h5.hpp" // uTensor
+
 
 #if defined(MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS) && \
  (MBED_CONF_NANOSTACK_HAL_EVENT_LOOP_USE_MBED_EVENTS == 1) && \
@@ -201,7 +202,7 @@ void sensors_update() {
         // run inference
         Context ctx;
         Tensor* temp_value_tensor = new WrappedRamTensor<float>({1,10}, (float*) &temp_value);    
-        get_data_h5_ctx(ctx, temp_value_tensor);
+        get_data_ctx(ctx, temp_value_tensor);
         printf("...Running Eval...");
         ctx.eval();
         printf("finished....");
