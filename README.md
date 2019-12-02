@@ -94,13 +94,23 @@ After 3-5 minutes you should be able to see your data in [Treasure Data](https:/
 
 ![](./img/td_db.png)
 
+
+#### Challenges
+
+If you've completed everything so far then try out these challenges to push youself! 
+
+1) add more sensor values, the board has several more sensors, try adding them both the Pelion Device Management as well as to Treasure Data. 
+2) modify how fast you are sending values to TD, right now its every 10s, try adjusting that to save power!
+3) 
+
 ### Compile ML Models based on Data
 
 After you  have some data in your database (reccomended 1000+ samples) we can generate new ML models from the data. To do this we're going to use the Workflow feature of Arm Treasure Data. If you'd like details on how we're doing this we can deep dive on it with you offline. For now just know that we're using Tensorflow go process the data and then running the models through a quantization engine to reduce the models to .cpp and .hpp files that we can use on an embedded device. 
 
 #### Run Workflow in Treasure Data
 
-It will take some time to run the workflow (~10min per table in the database, so it may be best to run the workflow overnight.) Once the workflow has been run you can find the generated files here : [http://aiotworkshop.s3-website-us-west-1.amazonaws.com/index.html](http://aiotworkshop.s3-website-us-west-1.amazonaws.com/index.html).
+It will take some time to run the workflow (\~10min per table in the database, so it may be best to run the workflow overnight.) Once the workflow has been run you can find the generated files here : [http://aiotworkshop.s3-website-us-west-1.amazonaws.com/index.html](http://aiotworkshop.s3-website-us-west-1.amazonaws.com/index.html).
+
 
 #### Download your models
 
@@ -114,9 +124,65 @@ If you're interested you can also download the .h5 and .pb files to explore the 
 
 Using [this model explorer](https://lutzroeder.github.io/netron/) you can view the phases in your model. Pay special attention to the output node, as we'll be using that name in out embedded code. 
 
+![](./img/ml_model_explore.png)
+
+#### Extra Info
+
+In case you're intersted what we're doing is running a Query in TD that lists all the data in the table by time. The script looks like this: 
+
+```SQL
+Select time, temp from data
+order time asc
+```
+
+Then we save that data and run `/models/train.py` and then `/models/convert_h5_to_pb.py`. If you want to do this you can open up the Query interface in Treasure Data and run the query above, then save the results as a CSV and run the python scripts locally on them. Finally you will need to run the following script on the `.pb` file
+
+```
+pip install tensorflow==1.13.1
+pip install utensor_cgen
+utensor-cli convert data.h5.pb --output-nodes=dense_3_1/BiasAdd
+```
+
+Note that we have to tell the generator which output node to use, in this case its `dense_3_1/BiasAdd`, which we can see from the model explorer above. (or you can run `utensor-cli show data.pb` to explore it more thuroughly)
+
 
 ### Run ML on Device
 
-Next up we're going to use those model files you downloaded on the device.
+
+#### Change branch to add-machine-learning
+Next up we're going to use those model files you downloaded on the device. First though we're going to switch branches to the 'add-machine-learning' branch. You can do this by clicking on the branch name on the bottom left of Mbed Studio and selecting `add-machine-learning`
+
+You will then need to pull down the changes made to the code. To do this simply run `mbed deploy` in the terminal within the `aiot-workshop` folder, this will download the uTensor library files. (if you dont have mbed cli installed you may need to run `pip install mbed-cli` first)
+
+TODO: add gif
+
+#### Issue firmware update to device
+
+Now that you have everything downloaded we will recompile and upload the firmware to the cloud to be distributed as a firmware update. To do this go to the cloud->Update tab and press `Publish to Pelion`, this will recompile the image and upload it as a manifest to the Pelion Portal.
+
+TODO: Image
+
+Next we will go to the [Pelion Portal and issue and update](https://portal.mbedcloud.com/firmware/manifests/list). You will need to first create an Update Campaign that uses the manifest, and then run the campaign. You should see your device as an option, select it and then start the campaign. You can view the progress of the campaign in the serial termail window. It will take a minute or two for the device to update, but once it does your new image will be running on it. 
+
+Congratulations, you just issues a Machine Learning model as a Firmware Update to a device remotely in the field! Using this method you can now continuously deploy new models to make devices smarter over time!
+
+TODO: Image
+
+
+#### Using the model to predict things!
+
+Great, so now we've got a ML model running on the device, but now what? Well, the answer is we use that model. This model in particular is being used to predict what the next temperature value will be based on the previous 10 values seen. In our simulated environment lets say that if we see more than a 10% deviation in predicted temperature that a fire is starting, so we should send an alert! You can see this in the C code. 
+
+Please note that it will take \~10 samples for the model to start working correctly, this is because the model is designed to need 10 samples to make an accurate prediction. Notice how untill the 10th sample the predicted temperature is garbage. 
+
+
+#### Challenges
+
+Now that we've got a model running on the device its up to you to challenge yourself! We've provided the training files used in the cloud in the /models folder as `train.py` and `convert_h5_to_pb.py` Here are you challenges:
+
+1) Modify the model to use a different value (humidity or pressure)
+2) Modify the model to use more than a single vlaue at a time
+
+
 
 
