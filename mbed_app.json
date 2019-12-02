@@ -176,6 +176,10 @@
         "api-key":{
             "help":  "REST API Key for Treasure Data",
             "value": "\"CHANGE_ME\""
+        },
+        "table-name":{
+            "help":  "name of table in Treasure Data to send data to",
+            "value": "\"CHANGE_ME\""
         }
     }
 }
