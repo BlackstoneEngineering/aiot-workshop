@@ -46,7 +46,9 @@ Grab TD API key from here : [https://console.treasuredata.com/app/mp/ak/](https:
 
 ![](./img/td_create_api_key.gif)
 
-```mbed_app.json
+and put it into the `api-key` field in `mbed_app.json`.
+
+```json
 "api-key":{
             "help":  "REST API Key for Treasure Data",
             "value": "\"CHANGE_ME\""
@@ -92,8 +94,6 @@ temp:28.6875,humidity:45.2000,pressure:993.3853
 #### View Data in Pelion Device Management
 Once your board has connected you can view it in the [Pelion Dashboard](https://portal.mbedcloud.com/devices/list). Try clicking through the resources on your device to see the temperature, humidity, pressure, and button clicks in real time from the board!
 
-TODO: gif of this
-
 #### Check Treasure Data Database
 
 After 3-5 minutes you should be able to see your data in [Treasure Data](https://console.treasuredata.com/app/databases/2440539) under the 'Databases' tab. Note that for this workshop everyone will be using the `aiot_workshop_db` database and sending their data to seperate tables. 
@@ -107,7 +107,6 @@ If you've completed everything so far then try out these challenges to push yous
 
 1) add more sensor values, the board has several more sensors, try adding them both the Pelion Device Management as well as to Treasure Data. 
 2) modify how fast you are sending values to TD, right now its every 10s, try adjusting that to save power!
-3) 
 
 ### Compile ML Models based on Data
 
@@ -160,19 +159,17 @@ Next up we're going to use those model files you downloaded on the device. First
 
 You will then need to pull down the changes made to the code. To do this simply run `mbed deploy` in the terminal within the `aiot-workshop` folder, this will download the uTensor library files. (if you dont have mbed cli installed you may need to run `pip install mbed-cli` first)
 
-TODO: add gif
+![](./img/deploy_ml_branch.gif)
 
 #### Issue firmware update to device
 
 Now that you have everything downloaded we will recompile and upload the firmware to the cloud to be distributed as a firmware update. To do this go to the cloud->Update tab and press `Publish to Pelion`, this will recompile the image and upload it as a manifest to the Pelion Portal.
 
-TODO: Image
-
 Next we will go to the [Pelion Portal and issue and update](https://portal.mbedcloud.com/firmware/manifests/list). You will need to first create an Update Campaign that uses the manifest, and then run the campaign. You should see your device as an option, select it and then start the campaign. You can view the progress of the campaign in the serial termail window. It will take a minute or two for the device to update, but once it does your new image will be running on it. 
 
 Congratulations, you just issues a Machine Learning model as a Firmware Update to a device remotely in the field! Using this method you can now continuously deploy new models to make devices smarter over time!
 
-TODO: Image
+![](./img/issue_update.gif)
 
 
 #### Using the model to predict things!
