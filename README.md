@@ -27,10 +27,14 @@ In Mbed Studio import [https://github.com/BlackstoneEngineering/aiot-workshop](h
 
 Next you will need to get your Pelion Device Management API key from the Pelion Portal : [https://portal.mbedcloud.com/access/keys/list](https://portal.mbedcloud.com/access/keys/list). Click `New API Key` in the top right to create a key. You will need it for the next step. 
 
-![](peliondm_create_apikey.gif)
+![](./img/peliondm_create_apikey.gif)
 
 
 Next you will need to add Pelion Device Management certificates for both connectivity and update to your project. You can do this easily from the left hand nav bar. 
+
+1) add Pelion Device Management API Key
+1) Create new certificate, and apply it to your project
+1) Apply Update Certificate
 
 ![](./img/add_certificates.gif)
 
@@ -39,6 +43,8 @@ Next you will need to add Pelion Device Management certificates for both connect
 Next we are going to add a Pelion Data Management (Treasure Data) [API key](https://console.treasuredata.com/app/mp/ak/) and a custom table name to `mbed_app.json`. This will allow the device to send data to treasure data and store it into the specified table. (Note, the database is hard coded in `main.cpp` for reasons that will become apparent later). Everyone needs a unique table name, so I reccomend using your last name, or your first_last name as the table name.
 
 Grab TD API key from here : [https://console.treasuredata.com/app/mp/ak/](https://console.treasuredata.com/app/mp/ak/) 
+
+![](./img/td_create_api_key.gif)
 
 ```mbed_app.json
 "api-key":{
