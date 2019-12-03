@@ -155,11 +155,9 @@ Note that we have to tell the generator which output node to use, in this case i
 
 
 #### Change branch to add-machine-learning
-Next up we're going to use those model files you downloaded on the device. First though we're going to switch branches to the 'add-machine-learning' branch. You can do this by clicking on the branch name on the bottom left of Mbed Studio and selecting `add-machine-learning`
+Next up we're going to use those model files you downloaded on the device. First though we're going to switch branches to the 'add-machine-learning' branch. You can do this by clicking on the branch name on the bottom left of Mbed Studio and selecting `add-machine-learning`. Next you will need to deploy the library to your project, you do this by going to View->Libraries, finding the utensor.lib and clicking the download link. (See image below)
 
-You will then need to pull down the changes made to the code. To do this simply run `mbed deploy` in the terminal within the `aiot-workshop` folder, this will download the uTensor library files. (if you dont have mbed cli installed you may need to run `pip install mbed-cli` first)
-
-![](./img/deploy_ml_branch.gif)
+![](./img/update_utensor.gif)
 
 #### Issue firmware update to device
 
