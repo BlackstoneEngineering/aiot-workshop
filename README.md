@@ -10,7 +10,7 @@ At the end of this workshop you will have a Cortex M IoT device running machine 
 1) [Login to a Pelion Dashboard](https://portal.mbedcloud.com/federated-login?issuer=https%3A%2F%2Faccount.mbed.com%2F&next=%2F)  account using Mbed Compiler Account from previous step
 1) Install [Mbed Studio](https://os.mbed.com/studio/) on your machine
 1) Give your email to your instructor to add you to the Arm Data Management account. 
-
+1) Target development board: Nucleo-H743ZI2
 
 ## Section 1: Device to Cloud
 In the first workshop session we will connect our device running Mbed OS to the Pelion Data Management service and the Pelion Device Management service. Pelion Data will allow us to store data and then process it later into a ML model, Pelion Device management will allow us to view real time data on the device as well as issue commands and firmware updates to the device. 
@@ -137,9 +137,9 @@ In case you're intersted what we're doing is running a Query in TD that lists al
 
 ```SQL
 Select time, temp from data
-order time asc
+order by time asc
 ```
-
+Switch to the `add-machine-learning` branch. 
 Then we save that data and run `/models/train.py` and then `/models/convert_h5_to_pb.py`. If you want to do this you can open up the Query interface in Treasure Data and run the query above, then save the results as a CSV and run the python scripts locally on them. Finally you will need to run the following script on the `.pb` file
 
 ```
